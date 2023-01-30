@@ -1,5 +1,5 @@
 program lyapunov 
- use precision
+ use precisions
  use functions
  use solvers
  use gram_schmidt
@@ -12,25 +12,10 @@ program lyapunov
  character(10) :: arg, fname
  real(dp), parameter :: pi = acos(-1.0_dp)
 
-  alfa1 = (8.0*sqrt(2.0_dp)/pi)*(1/3)*((b*b)/(b*b + 1))
-  alfa2 = (8.0*sqrt(2.0_dp)/pi)*(4/15)*((b*b + 3)/(b*b + 4))
-
-  delta1 = (64.0*sqrt(2.0_dp)/(15*pi))*((b*b)/(b*b + 1))
-  delta2 = (64.0*sqrt(2.0_dp)/(15*pi))*((b*b - 3)/(b*b + 4))
-
-  epsilon = 16*sqrt(2.0_dp)/(5.0*pi)
-
-  beta1 = (1.25*b*b)/(b*b + 1)
-  beta2 = (1.25*b*b)/(b*b + 4)
-
-  gamma1s = 4/3 * (sqrt(2.0)*b*1)/(pi)
-  gamma2s = 8/15 * (sqrt(2.0)*b*1)/(pi)
-
-  gamma1 = 4/3 * (sqrt(2.0)*b*1)/(pi*(b*b + 1))
-  gamma2 = 32/15 * (sqrt(2.0)*b*1)/(pi*(b*b + 4))
-  
-   if(iargc()<5) then
-  print*,'lyapunov h Nstep Niters b us1'  
+ 
+ 
+ if(iargc()<5) then
+  print*,'lyapunov h Nstep Niters b us1 beta'  
   stop  
  endif
 
@@ -48,7 +33,31 @@ program lyapunov
  
  call getarg(5,arg)
  read(arg,*) us1
-   
+
+ call getarg(6,arg)
+ read(arg,*) beta
+
+ 
+
+
+
+  alfa1 = (8.0_dp*sqrt(2.0_dp)/pi)*(1.0_dp/3.0_dp)*((b*b)/(b*b + 1.0_dp))
+  alfa2 = (8.0_dp*sqrt(2.0_dp)/pi)*(4.0_dp/15.0_dp)*((b*b + 3.0_dp)/(b*b + 4.0_dp))
+
+  delta1 = (64.0_dp*sqrt(2.0_dp)/(15.0_dp*pi))*((b*b)/(b*b + 1.0_dp))
+  delta2 = (64.0_dp*sqrt(2.0_dp)/(15.0_dp*pi))*((b*b - 3.0_dp)/(b*b + 4.0_dp))
+
+  epsilon = 16.0_dp*sqrt(2.0_dp)/(5.0_dp*pi)
+
+  beta1 = (beta*b)/(b*b + 1.0_dp)
+  beta2 = (beta*b)/(b*b + 4.0_dp)
+
+  gamma1s = 4.0_dp/3.0_dp * (sqrt(2.0)*b)/(pi)
+  gamma2s = 8.0_dp/15.0_dp * (sqrt(2.0)*b)/(pi)
+
+  gamma1 = 4.0_dp/3.0_dp * (sqrt(2.0)*b)/(pi*(b*b + 1.0_dp))
+  gamma2 = 32.0_dp/15.0_dp * (sqrt(2.0)*b)/(pi*(b*b + 4.0_dp))
+  
  !call getarg(6,arg)
  !read(arg,*) bb
  
@@ -56,9 +65,9 @@ program lyapunov
  open(194, file='values.dat')
 
  t=0.0_dp
- u(1) = 1.0_dp
- u(2) = 0.0_dp
- u(3) = 0.0_dp
+ u(1) = 3_dp
+ u(2) = 1.0_dp
+ u(3) = 1.0_dp
  u(4) = 0.0_dp
  u(5) = 0.0_dp
  u(6) = 0.0_dp
@@ -73,13 +82,17 @@ program lyapunov
  VO(5,5) = 1.0_dp
  VO(6,6) = 1.0_dp
  cum = 0.0_dp
- 
- ! remove transient
+
+
+  !remove transient
  do k = 1, Niters*Nstep 
-   call dopri54(deswart, t, h, u, unext, abserr)
+    call dopri54(deswart, t, h, u, unext, abserr)
+    write (194,*) u(1), u(2), u(4)
    t = t + h
    u = unext
- end do
+end do
+close (194)
+stop
 
  do k = 1, Niters ! numero di iterazioni tra una call di gs e l'altra 
     !print*,"iter:",k
@@ -115,7 +128,7 @@ program lyapunov
     else
         cum = cum + log(lambda)
     end if
-    write(194,*) tfin, cum/tfin
+    write(194,*) tfin, cum/tfin, u(1),u(2),u(3), u(4),u(5), u(6)
 
  end do
 
@@ -149,6 +162,6 @@ end do
   
  close(194)
 
-end program lyapunov 
 
+end program lyapunov 
  
