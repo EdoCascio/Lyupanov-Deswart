@@ -1,0 +1,3 @@
+#!/bin/bash
+
+grep use *.f90 | awk '{print gensub(".f90:",".o:",1,$1), $3".o"}'
